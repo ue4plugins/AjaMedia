@@ -701,7 +701,7 @@ bool FAjaMediaPlayer::OnInputFrameReceived(const AJA::AJAInputFrameData& InInput
 
 		if (AjaThreadCurrentTextureSample.IsValid())
 		{
-			if (AjaThreadCurrentTextureSample->UpdateProperties(InVideoFrame.Stride, InVideoFrame.Width, InVideoFrame.Height, VideoSampleFormat, DecodedTime, VideoFrameRate, DecodedTimecode, bIsSRGBInput))
+			if (AjaThreadCurrentTextureSample->SetProperties(InVideoFrame.Stride, InVideoFrame.Width, InVideoFrame.Height, VideoSampleFormat, DecodedTime, VideoFrameRate, DecodedTimecode, bIsSRGBInput))
 			{
 				Samples->AddVideo(AjaThreadCurrentTextureSample.ToSharedRef());
 			}
