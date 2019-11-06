@@ -532,7 +532,7 @@ bool FAjaMediaPlayer::OnInputFrameReceived(const AJA::AJAInputFrameData& InInput
 
 	AjaThreadFrameDropCount = InInputFrame.FramesDropped;
 
-	FTimespan DecodedTime = FTimespan::FromSeconds(FPlatformTime::Seconds());
+	FTimespan DecodedTime = FTimespan::FromSeconds(GetPlatformSeconds());
 	FTimespan DecodedTimeF2 = DecodedTime + FTimespan::FromSeconds(VideoFrameRate.AsInterval());
 
 	TOptional<FTimecode> DecodedTimecode;
@@ -560,7 +560,7 @@ bool FAjaMediaPlayer::OnInputFrameReceived(const AJA::AJAInputFrameData& InInput
 		//Previous frame Timecode for stats purposes
 		AjaThreadPreviousFrameTimecode = InInputFrame.Timecode;
 
-		if (bIsTimecodeLogEnable)
+		if (IsTimecodeLogEnabled())
 		{
 			UE_LOG(LogAjaMedia, Log, TEXT("Input %s has timecode : %02d:%02d:%02d:%02d"), *GetUrl(), InInputFrame.Timecode.Hours, InInputFrame.Timecode.Minutes, InInputFrame.Timecode.Seconds, InInputFrame.Timecode.Frames);
 		}
@@ -660,29 +660,29 @@ bool FAjaMediaPlayer::OnInputFrameReceived(const AJA::AJAInputFrameData& InInput
 	{
 		EMediaTextureSampleFormat VideoSampleFormat = EMediaTextureSampleFormat::CharBGRA;
 		EMediaIOCoreEncodePixelFormat EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharBGRA;
-		FString OutputFilename = "";
+		FString OutputFilename;
 
 		switch (InVideoFrame.PixelFormat)
 		{
 		case AJA::EPixelFormat::PF_8BIT_ARGB:
 			VideoSampleFormat = EMediaTextureSampleFormat::CharBGRA;
 			EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharBGRA;
-			OutputFilename = "Aja_Output_8_RGBA";
+			OutputFilename = TEXT("Aja_Output_8_RGBA");
 			break;
 		case AJA::EPixelFormat::PF_8BIT_YCBCR:
 			VideoSampleFormat = EMediaTextureSampleFormat::CharUYVY;
 			EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharUYVY;
-			OutputFilename = "Aja_Output_8_YUV";
+			OutputFilename = TEXT("Aja_Output_8_YUV");
 			break;
 		case AJA::EPixelFormat::PF_10BIT_RGB:
 			VideoSampleFormat = EMediaTextureSampleFormat::CharBGR10A2;
 			EncodePixelFormat = EMediaIOCoreEncodePixelFormat::A2B10G10R10;
-			OutputFilename = "Aja_Output_10_RGBA";
+			OutputFilename = TEXT("Aja_Output_10_RGBA");
 			break;
 		case AJA::EPixelFormat::PF_10BIT_YCBCR:
 			VideoSampleFormat = EMediaTextureSampleFormat::YUVv210;
 			EncodePixelFormat = EMediaIOCoreEncodePixelFormat::YUVv210;
-			OutputFilename = "Aja_Output_10_YUV";
+			OutputFilename = TEXT("Aja_Output_10_YUV");
 			break;
 		}
 

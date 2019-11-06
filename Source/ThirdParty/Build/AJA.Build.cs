@@ -28,8 +28,7 @@ public class AJA : ModuleRules
 			}
 
 			PublicIncludePaths.Add(Path.Combine(Path.Combine(ModuleDirectory, "include")));
-			PublicLibraryPaths.Add(AjaLibDir);
-			PublicAdditionalLibraries.Add(LibraryName + ".lib");
+			PublicAdditionalLibraries.Add(Path.Combine(AjaLibDir, LibraryName + ".lib"));
 
 			PublicDelayLoadDLLs.Add(LibraryName + ".dll");
 			RuntimeDependencies.Add(Path.Combine(AjaLibDir, LibraryName + ".dll"));

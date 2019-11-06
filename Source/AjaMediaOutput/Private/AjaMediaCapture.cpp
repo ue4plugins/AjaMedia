@@ -91,18 +91,6 @@ bool UAjaMediaCapture::ValidateMediaOutput() const
 		return false;
 	}
 
-	if (AjaMediaOutput->OutputConfiguration.OutputType == EMediaIOOutputType::FillAndKey)
-	{
-		static const auto CVarPropagateAlpha = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.PostProcessing.PropagateAlpha"));
-		EAlphaChannelMode::Type PropagateAlpha = EAlphaChannelMode::FromInt(CVarPropagateAlpha->GetValueOnGameThread());
-		if (PropagateAlpha != EAlphaChannelMode::AllowThroughTonemapper)
-		{
-
-			UE_LOG(LogAjaMediaOutput, Error, TEXT("Can not start the capture. For key, 'Enable alpha channel support in post-processing' must be set to 'Allow through tonemapper'"));
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -234,6 +222,8 @@ bool UAjaMediaCapture::InitAJA(UAjaMediaOutput* InAjaMediaOutput)
 	OutputCallback = new UAjaMediaCapture::FAjaOutputCallback();
 	OutputCallback->Owner = this;
 
+	AJA::AJAVideoFormats::VideoFormatDescriptor Descriptor = AJA::AJAVideoFormats::GetVideoFormat(InAjaMediaOutput->OutputConfiguration.MediaConfiguration.MediaMode.DeviceModeIdentifier);
+
 	// Init Channel options
 	AJA::AJAInputOutputChannelOptions ChannelOptions(TEXT("ViewportOutput"), InAjaMediaOutput->OutputConfiguration.MediaConfiguration.MediaConnection.PortIdentifier);
 	ChannelOptions.CallbackInterface = OutputCallback;
@@ -248,9 +238,9 @@ bool UAjaMediaCapture::InitAJA(UAjaMediaOutput* InAjaMediaOutput)
 	ChannelOptions.bUseAncillary = false;
 	ChannelOptions.bUseAudio = false;
 	ChannelOptions.bUseVideo = true;
-	ChannelOptions.bOutputInterlacedFieldsTimecodeNeedToMatch = InAjaMediaOutput->bInterlacedFieldsTimecodeNeedToMatch;
+	ChannelOptions.bOutputInterlacedFieldsTimecodeNeedToMatch = InAjaMediaOutput->bInterlacedFieldsTimecodeNeedToMatch && Descriptor.bIsInterlacedStandard && InAjaMediaOutput->TimecodeFormat != EMediaIOTimecodeFormat::None;
 	ChannelOptions.bDisplayWarningIfDropFrames = bLogDropFrame;
-	ChannelOptions.bConvertOutputLevelAToB = InAjaMediaOutput->bOutputIn3GLevelB;
+	ChannelOptions.bConvertOutputLevelAToB = InAjaMediaOutput->bOutputIn3GLevelB && Descriptor.bIsVideoFormatA;
 
 	{
 		const EMediaIOTransportType TransportType = InAjaMediaOutput->OutputConfiguration.MediaConfiguration.MediaConnection.TransportType;
@@ -368,7 +358,7 @@ void UAjaMediaCapture::OnFrameCaptured_RenderingThread(const FCaptureBaseData& I
 		uint32 Stride = Width * 4;
 		uint32 TimeEncodeWidth = Width;
 		EMediaIOCoreEncodePixelFormat EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharBGRA;
-		FString OutputFilename = "";
+		FString OutputFilename;
 
 		switch (PixelFormat)
 		{
@@ -378,7 +368,7 @@ void UAjaMediaCapture::OnFrameCaptured_RenderingThread(const FCaptureBaseData& I
 				Stride = Width * 4;
 				TimeEncodeWidth = Width;
 				EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharBGRA;
-				OutputFilename = "Aja_Input_8_RGBA";
+				OutputFilename = TEXT("Aja_Input_8_RGBA");
 				break;
 			}
 			else
@@ -386,7 +376,7 @@ void UAjaMediaCapture::OnFrameCaptured_RenderingThread(const FCaptureBaseData& I
 				Stride = Width * 4;
 				TimeEncodeWidth = Width * 2;
 				EncodePixelFormat = EMediaIOCoreEncodePixelFormat::CharUYVY;
-				OutputFilename = "Aja_Input_8_YUV";
+				OutputFilename = TEXT("Aja_Input_8_YUV");
 				break;
 			}
 		case EAjaMediaOutputPixelFormat::PF_10BIT_YUV:
@@ -395,7 +385,7 @@ void UAjaMediaCapture::OnFrameCaptured_RenderingThread(const FCaptureBaseData& I
 				Stride = Width * 4;
 				TimeEncodeWidth = Width;
 				EncodePixelFormat = EMediaIOCoreEncodePixelFormat::A2B10G10R10;
-				OutputFilename = "Aja_Input_10_RGBA";
+				OutputFilename = TEXT("Aja_Input_10_RGBA");
 				break;
 			}
 			else
@@ -403,7 +393,7 @@ void UAjaMediaCapture::OnFrameCaptured_RenderingThread(const FCaptureBaseData& I
 				Stride = Width * 16;
 				TimeEncodeWidth = Width * 6;
 				EncodePixelFormat = EMediaIOCoreEncodePixelFormat::YUVv210;
-				OutputFilename = "Aja_Input_10_YUV";
+				OutputFilename = TEXT("Aja_Input_10_YUV");
 				break;
 			}
 		}

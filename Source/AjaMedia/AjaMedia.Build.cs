@@ -27,7 +27,7 @@ namespace UnrealBuildTool.Rules
 					"MediaUtils",
 					"Projects",
 					"TimeManagement",
-					"UtilityShaders"
+					"RenderCore",
 				});
 
 			PrivateIncludePathModuleNames.AddRange(

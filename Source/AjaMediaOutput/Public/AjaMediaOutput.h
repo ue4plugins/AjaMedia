@@ -71,7 +71,7 @@ public:
 	 * When creating a new Frame the 2 fields need to have the same timecode value.
 	 * The Engine's need a TimecodeProvider (or the default system clock) that is in sync with the generated fields.
 	 */
-	UPROPERTY(EditAnywhere, AdvancedDisplay, Category="Output", meta=(ClampMin=1, ClampMax=4))
+	UPROPERTY(EditAnywhere, AdvancedDisplay, Category="Output")
 	bool bInterlacedFieldsTimecodeNeedToMatch;
 
 	/** Try to maintain a the engine "Genlock" with the VSync signal. */

@@ -231,7 +231,7 @@ bool UAjaMediaOutput::CanEditChange(const UProperty* InProperty) const
 		if (OutputConfiguration.IsValid())
 		{
 			AJA::AJAVideoFormats::VideoFormatDescriptor Descriptor = AJA::AJAVideoFormats::GetVideoFormat(OutputConfiguration.MediaConfiguration.MediaMode.DeviceModeIdentifier);
-			return Descriptor.bIsVideoFormatA;
+			bValid = Descriptor.bIsVideoFormatA;
 		}
 		return bValid;
 	}
@@ -239,6 +239,17 @@ bool UAjaMediaOutput::CanEditChange(const UProperty* InProperty) const
 	if (InProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UAjaMediaOutput, bInvertKeyOutput))
 	{
 		return (OutputConfiguration.OutputType == EMediaIOOutputType::FillAndKey);
+	}
+
+	if (InProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UAjaMediaOutput, bInterlacedFieldsTimecodeNeedToMatch))
+	{
+		bool bValid = false;
+		if (OutputConfiguration.IsValid() && TimecodeFormat != EMediaIOTimecodeFormat::None)
+		{
+			AJA::AJAVideoFormats::VideoFormatDescriptor Descriptor = AJA::AJAVideoFormats::GetVideoFormat(OutputConfiguration.MediaConfiguration.MediaMode.DeviceModeIdentifier);
+			bValid = Descriptor.bIsInterlacedStandard;
+		}
+		return bValid;
 	}
 
 	return true;
@@ -251,6 +262,7 @@ void UAjaMediaOutput::PostEditChangeChainProperty(struct FPropertyChangedChainEv
 		if (TimecodeFormat == EMediaIOTimecodeFormat::None)
 		{
 			bEncodeTimecodeInTexel = false;
+			bInterlacedFieldsTimecodeNeedToMatch = false;
 		}
 	}
 
@@ -269,6 +281,16 @@ void UAjaMediaOutput::PostEditChangeChainProperty(struct FPropertyChangedChainEv
 		if (OutputConfiguration.OutputType == EMediaIOOutputType::Fill)
 		{
 			bInvertKeyOutput = false;
+		}
+
+		if (bInterlacedFieldsTimecodeNeedToMatch)
+		{
+			bInterlacedFieldsTimecodeNeedToMatch = false;
+			if (OutputConfiguration.IsValid() && TimecodeFormat != EMediaIOTimecodeFormat::None)
+			{
+				AJA::AJAVideoFormats::VideoFormatDescriptor Descriptor = AJA::AJAVideoFormats::GetVideoFormat(OutputConfiguration.MediaConfiguration.MediaMode.DeviceModeIdentifier);
+				bInterlacedFieldsTimecodeNeedToMatch = Descriptor.bIsInterlacedStandard;
+			}
 		}
 	}
 
